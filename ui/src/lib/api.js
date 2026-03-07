@@ -83,6 +83,11 @@ export async function fetchSchema() {
   return res.json();
 }
 
+export async function fetchShareImage() {
+  const res = await fetch(`${BASE}/api/share-image`);
+  return res.text();
+}
+
 export async function fetchToolCalls(name, opts = {}) {
   const q = new URLSearchParams({ name });
   if (opts.limit) q.set('limit', opts.limit);

@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cache = require('./cache');
+const { generateShareSvg } = require('./share-image');
 
 const app = express();
 app.use(express.json());
@@ -145,6 +146,19 @@ app.get('/api/schema', (req, res) => {
     res.json({ tables: tables.map(t => t.name), schema });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/share-image', (req, res) => {
+  try {
+    const overview = cache.getCachedOverview();
+    const stats = cache.getCachedDashboardStats();
+    const svg = generateShareSvg(overview, stats);
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(svg);
+  } catch (err) {
+    console.error('Share image error:', err);
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 });
 
