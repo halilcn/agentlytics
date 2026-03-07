@@ -22,6 +22,7 @@ const EDITOR_COLORS = {
   'opencode': '#ec4899',
   'gemini-cli': '#4285f4',
   'copilot-cli': '#8957e5',
+  'cursor-agent': '#f59e0b',
 };
 
 const EDITOR_LABELS = {
@@ -37,6 +38,7 @@ const EDITOR_LABELS = {
   'opencode': 'OpenCode',
   'gemini-cli': 'Gemini CLI',
   'copilot-cli': 'Copilot CLI',
+  'cursor-agent': 'Cursor Agent',
 };
 
 function generateShareSvg(overview, stats) {
