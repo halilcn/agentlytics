@@ -46,16 +46,16 @@ export default function App() {
   }, [mode, authed])
 
   const refreshOverview = useCallback(() => {
-    fetchOverview().then(setOverview)
+    fetchOverview().then(setOverview).catch(() => {})
   }, [])
 
   useEffect(() => {
-    refreshOverview()
-  }, [])
+    if (mode === 'local') refreshOverview()
+  }, [mode])
 
   // Live mode: refetch overview every 60s
   useEffect(() => {
-    if (live) {
+    if (live && mode === 'local') {
       liveRef.current = setInterval(() => {
         refreshOverview()
       }, 60000)
@@ -182,7 +182,7 @@ export default function App() {
         </div>
       )}
 
-      <main className="p-4 max-w-[1400px] mx-auto">
+      <main className={isRelay ? 'px-0' : 'p-4 max-w-[1400px] mx-auto'}>
         {mode === null ? (
           <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading...</div>
         ) : isRelay ? (
