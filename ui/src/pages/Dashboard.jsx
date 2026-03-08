@@ -6,9 +6,9 @@ import { Doughnut, Bar, Line } from 'react-chartjs-2'
 import KpiCard from '../components/KpiCard'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import DateRangePicker from '../components/DateRangePicker'
-import { editorColor, editorLabel, formatNumber, dateRangeToApiParams } from '../lib/constants'
+import { editorColor, editorLabel, formatNumber, formatCost, dateRangeToApiParams } from '../lib/constants'
 import EditorIcon from '../components/EditorIcon'
-import { fetchDailyActivity, fetchOverview as fetchOverviewApi, fetchDashboardStats, fetchShareImage, fetchChats } from '../lib/api'
+import { fetchDailyActivity, fetchOverview as fetchOverviewApi, fetchDashboardStats, fetchShareImage, fetchChats, fetchCosts } from '../lib/api'
 import { useTheme } from '../lib/theme'
 import SectionTitle from '../components/SectionTitle'
 
@@ -30,6 +30,7 @@ export default function Dashboard({ overview }) {
   const [selectedEditor, setSelectedEditor] = useState(null)
   const [dateRange, setDateRange] = useState(null)
   const { dark } = useTheme()
+  const [costs, setCosts] = useState(null)
   const [sharing, setSharing] = useState(false)
   const [largeContextChats, setLargeContextChats] = useState(null)
   const txtColor = dark ? '#888' : '#555'
@@ -64,16 +65,19 @@ export default function Dashboard({ overview }) {
       setFilteredData(null)
       fetchDailyActivity(dateParams).then(setDailyData)
       fetchDashboardStats(dateParams).then(setStats)
+      fetchCosts(dateParams).then(setCosts)
       return
     }
     Promise.all([
       fetchOverviewApi({ editor: selectedEditor, ...dateParams }),
       fetchDailyActivity({ editor: selectedEditor, ...dateParams }),
       fetchDashboardStats({ editor: selectedEditor, ...dateParams }),
-    ]).then(([ov, daily, st]) => {
+      fetchCosts({ editor: selectedEditor, ...dateParams }),
+    ]).then(([ov, daily, st, c]) => {
       setFilteredData(ov)
       setDailyData(daily)
       setStats(st)
+      setCosts(c)
     })
   }, [selectedEditor, dateRange])
 
@@ -220,7 +224,7 @@ export default function Dashboard({ overview }) {
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="flex items-center gap-1.5 px-3 py-1 text-[11px] rounded-md transition hover:opacity-80"
+          className="flex items-center gap-1.5 px-3 py-1 text-[12px] rounded-md transition hover:opacity-80"
           style={{ background: '#6366f1', color: '#fff', opacity: sharing ? 0.5 : 1 }}
         >
           <Share2 size={12} />
@@ -236,7 +240,7 @@ export default function Dashboard({ overview }) {
             return (
               <button
                 key={e.id}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] cursor-pointer transition rounded-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] cursor-pointer transition rounded-sm"
                 style={{
                   border: isSelected ? `1.5px solid ${editorColor(e.id)}` : '1px solid var(--c-border)',
                   background: isSelected ? editorColor(e.id) + '15' : 'transparent',
@@ -254,10 +258,10 @@ export default function Dashboard({ overview }) {
         </div>
         {selectedEditor && sel && (
           <div className="mt-2 flex items-center gap-2">
-            <button onClick={() => navigate(`/sessions?editor=${selectedEditor}`)} className="flex items-center gap-1 text-[11px] px-2.5 py-1 transition" style={{ color: 'var(--c-accent)', border: '1px solid var(--c-border)' }}>
+            <button onClick={() => navigate(`/sessions?editor=${selectedEditor}`)} className="flex items-center gap-1 text-[12px] px-2.5 py-1 transition" style={{ color: 'var(--c-accent)', border: '1px solid var(--c-border)' }}>
               Show Sessions <ArrowRight size={11} />
             </button>
-            <button onClick={() => setSelectedEditor(null)} className="flex items-center gap-1 text-[11px] px-2.5 py-1 transition" style={{ color: 'var(--c-text2)', border: '1px solid var(--c-border)' }}>
+            <button onClick={() => setSelectedEditor(null)} className="flex items-center gap-1 text-[12px] px-2.5 py-1 transition" style={{ color: 'var(--c-text2)', border: '1px solid var(--c-border)' }}>
               <X size={9} /> Clear
             </button>
           </div>
@@ -282,12 +286,25 @@ export default function Dashboard({ overview }) {
         </>}
       </div>
 
+      {/* Token economy KPIs */}
+      {tk && tk.input > 0 && (
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
+          <KpiCard label="in tokens" value={formatNumber(tk.input)} sub="total prompt" />
+          <KpiCard label="out tokens" value={formatNumber(tk.output)} sub="total completion" />
+          <KpiCard label="cache read" value={formatNumber(tk.cacheRead)} sub={`${cacheHitRate}% hit rate`} />
+          <KpiCard label="cache write" value={formatNumber(tk.cacheWrite)} />
+          <KpiCard label="out/in ratio" value={`${outputInputRatio}×`} sub={<span className="flex items-center gap-0.5"><Zap size={8} /> efficiency</span>} />
+          <KpiCard label="you wrote" value={formatNumber(tk.userChars)} sub={`AI wrote ${formatNumber(tk.assistantChars)}`} />
+          <KpiCard label="est. cost" value={costs && costs.totalCost > 0 ? formatCost(costs.totalCost) : '—'} sub={costs && costs.byModel.length > 0 ? `${costs.byModel.length} model${costs.byModel.length !== 1 ? 's' : ''}` : undefined} />
+        </div>
+      )}
+
       {/* Activity Heatmap | Col 1 | Col 2 | Col 3 */}
       <div className="card p-3">
         <SectionTitle>agentic coding activity</SectionTitle>
         <div className="flex gap-4">
           <div className="min-w-0 flex-shrink-0">
-            {dailyData ? <ActivityHeatmap dailyData={dailyData} /> : <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>loading...</div>}
+            {dailyData ? <ActivityHeatmap dailyData={dailyData} /> : <div className="text-[11px]" style={{ color: 'var(--c-text3)' }}>loading...</div>}
           </div>
           {stats && dailyData && (() => {
             const activeDays = dailyData.filter(d => d.total > 0)
@@ -295,7 +312,7 @@ export default function Dashboard({ overview }) {
             const totalSessions = activeDays.reduce((s, d) => s + d.total, 0)
             const avgPerDay = activeDays.length > 0 ? (totalSessions / activeDays.length).toFixed(1) : 0
             return (
-              <div className="flex-1 grid grid-cols-3 gap-3 text-[10px] min-w-0" style={{ borderLeft: '1px solid var(--c-border)', paddingLeft: 16 }}>
+              <div className="flex-1 grid grid-cols-3 gap-3 text-[11px] min-w-0" style={{ borderLeft: '1px solid var(--c-border)', paddingLeft: 16 }}>
                 <div className="space-y-2 min-w-0">
                   <div>
                     <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">streaks</div>
@@ -452,11 +469,11 @@ export default function Dashboard({ overview }) {
           <div className="space-y-1 max-h-[180px] overflow-y-auto scrollbar-thin">
             {d.topProjects.slice(0, 12).map(p => (
               <div key={p.name} className="flex items-center gap-1.5">
-                <div className="text-[9px] w-6 text-right" style={{ color: 'var(--c-text2)' }}>{p.count}</div>
+                <div className="text-[10px] w-6 text-right" style={{ color: 'var(--c-text2)' }}>{p.count}</div>
                 <div className="flex-1 h-3 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
                   <div className="h-full bg-accent/30 rounded-sm" style={{ width: `${(p.count / maxProject * 100).toFixed(1)}%` }} />
                 </div>
-                <div className="text-[9px] truncate max-w-[140px]" style={{ color: 'var(--c-text2)' }} title={p.fullPath}>{p.name}</div>
+                <div className="text-[10px] truncate max-w-[140px]" style={{ color: 'var(--c-text2)' }} title={p.fullPath}>{p.name}</div>
               </div>
             ))}
           </div>
@@ -467,19 +484,21 @@ export default function Dashboard({ overview }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
         {stats && stats.topModels.length > 0 && (
           <div className="card p-3">
-            <SectionTitle>top models</SectionTitle>
+            <SectionTitle>top models {costs && costs.totalCost > 0 && <span style={{ color: 'var(--c-text3)' }}>({formatCost(costs.totalCost)} est.)</span>}</SectionTitle>
             <div className="space-y-1">
               {stats.topModels.map((m, i) => {
                 const maxM = stats.topModels[0].count
+                const modelCost = costs?.byModel?.find(c => c.model === m.name)
                 return (
                   <div key={m.name} className="flex items-center gap-2">
-                    <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
+                    <span className="text-[10px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
                     <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
                       <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(m.count / maxM * 100).toFixed(1)}%`, background: i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : '#a5b4fc40' }}>
                         <span className="text-[8px] truncate" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{m.name}</span>
                       </div>
                     </div>
-                    <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{m.count}</span>
+                    {modelCost ? <span className="text-[9px] w-12 text-right" style={{ color: '#10b981' }}>{formatCost(modelCost.cost)}</span> : null}
+                    <span className="text-[10px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{m.count}</span>
                   </div>
                 )
               })}
@@ -495,13 +514,13 @@ export default function Dashboard({ overview }) {
                 const maxT = stats.topTools[0].count
                 return (
                   <div key={t.name} className="flex items-center gap-2">
-                    <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
+                    <span className="text-[10px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
                     <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
                       <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(t.count / maxT * 100).toFixed(1)}%`, background: i === 0 ? '#10b981' : i === 1 ? '#34d399' : '#6ee7b740' }}>
                         <span className="text-[8px] truncate font-mono" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{t.name}</span>
                       </div>
                     </div>
-                    <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{formatNumber(t.count)}</span>
+                    <span className="text-[10px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{formatNumber(t.count)}</span>
                   </div>
                 )
               })}
@@ -527,9 +546,9 @@ export default function Dashboard({ overview }) {
                   onClick={() => navigate(`/sessions/${c.id}`)}
                 >
                   <EditorIcon source={c.source} size={10} />
-                  <span className="text-[9px] truncate flex-1" style={{ color: 'var(--c-text)' }}>{c.name || 'Untitled'}</span>
+                  <span className="text-[10px] truncate flex-1" style={{ color: 'var(--c-text)' }}>{c.name || 'Untitled'}</span>
                   <span
-                    className="text-[9px] font-bold flex-shrink-0"
+                    className="text-[10px] font-bold flex-shrink-0"
                     style={{ color: c.bubbleCount >= 500 ? '#ef4444' : '#f59e0b' }}
                   >
                     {c.bubbleCount}

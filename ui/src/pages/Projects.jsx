@@ -3,8 +3,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import { Doughnut, Bar } from 'react-chartjs-2'
 import { Search, MessageSquare, Wrench, Cpu, FolderOpen, Calendar, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { fetchProjects } from '../lib/api'
-import { editorColor, editorLabel, formatNumber, formatDate, dateRangeToApiParams } from '../lib/constants'
+import { fetchProjects, fetchCosts } from '../lib/api'
+import { editorColor, editorLabel, formatNumber, formatCost, formatDate, dateRangeToApiParams } from '../lib/constants'
 import { useTheme } from '../lib/theme'
 import KpiCard from '../components/KpiCard'
 import EditorIcon from '../components/EditorIcon'
@@ -25,11 +25,16 @@ export default function Projects({ overview }) {
   const [search, setSearch] = useState('')
   const [editorFilter, setEditorFilter] = useState('')
   const [dateRange, setDateRange] = useState(null)
+  const [costs, setCosts] = useState(null)
   const navigate = useNavigate()
   const editors = overview?.editors || []
 
   useEffect(() => {
-    fetchProjects(dateRangeToApiParams(dateRange)).then(setProjects)
+    const dateParams = dateRangeToApiParams(dateRange)
+    Promise.all([
+      fetchProjects(dateParams),
+      fetchCosts(dateParams),
+    ]).then(([p, c]) => { setProjects(p); setCosts(c) })
   }, [dateRange])
 
   if (!projects) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading projects...</div>
@@ -64,6 +69,7 @@ export default function Projects({ overview }) {
         <KpiCard label="sessions" value={formatNumber(totalSessions)} onClick={() => navigate('/sessions')} />
         <KpiCard label="messages" value={formatNumber(totalMessages)} />
         <KpiCard label="tokens" value={formatNumber(totalTokens)} />
+        <KpiCard label="est. cost" value={costs && costs.totalCost > 0 ? formatCost(costs.totalCost) : '\u2014'} />
       </div>
 
       {/* Charts row */}
@@ -136,7 +142,7 @@ export default function Projects({ overview }) {
         <select
           value={editorFilter}
           onChange={e => setEditorFilter(e.target.value)}
-          className="px-2 py-1.5 text-[11px] outline-none rounded-sm"
+          className="px-2 py-1.5 text-[12px] outline-none rounded-sm"
           style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
         >
           <option value="">All Editors</option>
@@ -151,7 +157,7 @@ export default function Projects({ overview }) {
             placeholder="search projects..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-[11px] outline-none rounded-sm"
+            className="w-full pl-8 pr-3 py-1.5 text-[12px] outline-none rounded-sm"
             style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
           />
         </div>
@@ -176,7 +182,7 @@ export default function Projects({ overview }) {
                 <FolderOpen size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--c-accent)' }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[12px] font-bold truncate" style={{ color: 'var(--c-white)' }}>{p.name}</div>
-                  <div className="text-[9px] truncate" style={{ color: 'var(--c-text3)' }}>{p.folder}</div>
+                  <div className="text-[10px] truncate" style={{ color: 'var(--c-text3)' }}>{p.folder}</div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {editorEntries.slice(0, 4).map(([e]) => (
@@ -191,7 +197,7 @@ export default function Projects({ overview }) {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
                 <div className="flex items-center gap-1">
                   <MessageSquare size={9} style={{ color: 'var(--c-text3)' }} />
                   <span style={{ color: 'var(--c-text2)' }}>{p.totalSessions} sessions</span>
@@ -213,7 +219,7 @@ export default function Projects({ overview }) {
               </div>
 
               {/* Footer: editors breakdown + date */}
-              <div className="flex items-center gap-2 pt-1 text-[9px]" style={{ borderTop: '1px solid var(--c-border)' }}>
+              <div className="flex items-center gap-2 pt-1 text-[10px]" style={{ borderTop: '1px solid var(--c-border)' }}>
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   {editorEntries.map(([e, c]) => (
                     <span key={e} className="inline-flex items-center gap-0.5 truncate">
