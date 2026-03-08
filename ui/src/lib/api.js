@@ -180,8 +180,17 @@ export async function fetchSchema() {
   return res.json();
 }
 
-export async function fetchShareImage() {
-  const res = await fetch(`${BASE}/api/share-image`);
+export async function fetchShareImage(opts = {}) {
+  const q = new URLSearchParams();
+  if (opts.showEditors !== undefined) q.set('showEditors', opts.showEditors);
+  if (opts.showModels !== undefined) q.set('showModels', opts.showModels);
+  if (opts.showCosts !== undefined) q.set('showCosts', opts.showCosts);
+  if (opts.showTokens !== undefined) q.set('showTokens', opts.showTokens);
+  if (opts.showHours !== undefined) q.set('showHours', opts.showHours);
+  if (opts.username) q.set('username', opts.username);
+  if (opts.theme) q.set('theme', opts.theme);
+  const qs = q.toString();
+  const res = await fetch(`${BASE}/api/share-image${qs ? '?' + qs : ''}`);
   return res.text();
 }
 

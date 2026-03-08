@@ -28,6 +28,14 @@
       },
     }
   </script>
+  <script>
+    function copyCmd(el){
+      var t='npx agentlytics';
+      var done=function(){var c=el.querySelector('.copied');c.classList.remove('hidden');setTimeout(function(){c.classList.add('hidden')},1500)};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback(t,done)})}else{fallback(t,done)}
+      function fallback(text,cb){var a=document.createElement('textarea');a.value=text;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);cb()}
+    }
+  </script>
   <style>
     body { background: #0a0a0f; }
     ::selection { background: rgba(99,102,241,0.3); }
@@ -173,7 +181,7 @@
           <div class="flex flex-col sm:flex-row items-center lg:items-start gap-3 mb-6">
             <div
               class="group flex items-center gap-3 px-5 py-3 rounded-lg bg-bg-3 border border-border hover:border-indigo-500/40 transition cursor-pointer glow-sm"
-              onclick="navigator.clipboard.writeText('npx agentlytics');this.querySelector('.copied').classList.remove('hidden');setTimeout(()=>this.querySelector('.copied').classList.add('hidden'),1500)"
+              onclick="copyCmd(this)"
             >
               <span class="text-indigo-400 font-mono text-sm">$</span>
               <code class="font-mono text-sm text-white">npx agentlytics</code>
@@ -464,7 +472,7 @@
       <p class="text-gray-400 mb-10">One command. Takes ~30 seconds to scan and analyze all your sessions.</p>
       <div
         class="inline-flex items-center gap-3 px-6 py-4 rounded-xl bg-bg-3 border border-border hover:border-indigo-500/40 transition cursor-pointer glow"
-        onclick="navigator.clipboard.writeText('npx agentlytics');this.querySelector('.copied').classList.remove('hidden');setTimeout(()=>this.querySelector('.copied').classList.add('hidden'),1500)"
+        onclick="copyCmd(this)"
       >
         <span class="text-indigo-400 font-mono">$</span>
         <code class="font-mono text-lg text-white">npx agentlytics</code>
