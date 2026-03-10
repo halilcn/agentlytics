@@ -578,4 +578,14 @@ function resetCache() { _lsCache = null; }
 
 const labels = { 'windsurf': 'Windsurf', 'windsurf-next': 'Windsurf Next' };
 
-module.exports = { name, sources, labels, getChats, getMessages, resetCache, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'windsurf',
+    label: 'Windsurf',
+    files: ['.windsurfrules'],
+    dirs: ['.windsurf/workflows', '.windsurf/rules', '.windsurf/plans', '.windsurf/skills'],
+  });
+}
+
+module.exports = { name, sources, labels, getChats, getMessages, resetCache, getUsage, getArtifacts };

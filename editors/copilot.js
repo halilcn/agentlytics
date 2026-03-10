@@ -240,4 +240,14 @@ async function getUsage() {
 
 const labels = { 'copilot-cli': 'Copilot CLI' };
 
-module.exports = { name, labels, getChats, getMessages, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'copilot-cli',
+    label: 'Copilot',
+    files: ['.github/copilot-instructions.md'],
+    dirs: [],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getUsage, getArtifacts };

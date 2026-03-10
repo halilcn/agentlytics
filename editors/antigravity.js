@@ -974,4 +974,14 @@ function resetCache() { _lsCache = null; _lsCacheCheckedAt = 0; _modelMap = null
 
 const labels = { 'antigravity': 'Antigravity' };
 
-module.exports = { name, labels, getChats, getMessages, resetCache, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'antigravity',
+    label: 'Antigravity',
+    files: ['.windsurfrules'],
+    dirs: ['.windsurf/workflows', '.windsurf/rules', '.windsurf/plans', '.windsurf/skills'],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, resetCache, getUsage, getArtifacts };

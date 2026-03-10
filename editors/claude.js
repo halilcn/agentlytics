@@ -301,4 +301,14 @@ async function getUsage() {
 
 const labels = { 'claude-code': 'Claude Code' };
 
-module.exports = { name, labels, getChats, getMessages, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'claude-code',
+    label: 'Claude Code',
+    files: ['CLAUDE.md', '.claude/settings.json', '.claude/settings.local.json', '.mcp.json'],
+    dirs: ['.claude/commands'],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getUsage, getArtifacts };

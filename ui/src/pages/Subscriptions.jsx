@@ -3,6 +3,7 @@ import { CreditCard, RefreshCw, Clock, Zap, Shield, ChevronDown, ChevronUp } fro
 import { fetchUsage } from '../lib/api'
 import { editorLabel, editorColor } from '../lib/constants'
 import EditorIcon from '../components/EditorIcon'
+import AnimatedLoader from '../components/AnimatedLoader'
 
 function UsageBar({ value, max = 100, color, label }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
@@ -386,7 +387,7 @@ export default function Subscriptions() {
       </div>
 
       {loading && !data && (
-        <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading subscriptions...</div>
+        <AnimatedLoader label="Loading subscriptions..." />
       )}
 
       {error && (

@@ -8,6 +8,7 @@ import { editorColor, editorLabel, formatNumber, formatCost, formatDate, dateRan
 import { useTheme } from '../lib/theme'
 import KpiCard from '../components/KpiCard'
 import EditorIcon from '../components/EditorIcon'
+import AnimatedLoader from '../components/AnimatedLoader'
 import SectionTitle from '../components/SectionTitle'
 import DateRangePicker from '../components/DateRangePicker'
 import ChatSidebar from '../components/ChatSidebar'
@@ -41,7 +42,7 @@ export default function CostAnalysis({ overview }) {
   }, [editor, apiDateRange])
 
   if (!data) {
-    return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading cost data...</div>
+    return <AnimatedLoader label="Loading cost data..." />
   }
 
   const { totalCost, byModel, byEditor, byProject, monthly, topSessions, summary, unknownModels } = data

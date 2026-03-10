@@ -386,4 +386,14 @@ async function getUsage() {
 
 const labels = { 'vscode': 'VS Code', 'vscode-insiders': 'VS Code Insiders' };
 
-module.exports = { name, labels, getChats, getMessages, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'vscode',
+    label: 'VS Code',
+    files: ['.github/copilot-instructions.md'],
+    dirs: ['.vscode'],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getUsage, getArtifacts };

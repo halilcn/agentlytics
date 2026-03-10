@@ -10,6 +10,7 @@ import KpiCard from '../components/KpiCard'
 import EditorIcon from '../components/EditorIcon'
 import DateRangePicker from '../components/DateRangePicker'
 import SectionTitle from '../components/SectionTitle'
+import AnimatedLoader from '../components/AnimatedLoader'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -37,7 +38,7 @@ export default function Projects({ overview }) {
     ]).then(([p, c]) => { setProjects(p); setCosts(c) })
   }, [dateRange])
 
-  if (!projects) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading projects...</div>
+  if (!projects) return <AnimatedLoader label="Loading projects..." />
 
   const filtered = projects.filter(p => {
     if (editorFilter && !p.editors[editorFilter]) return false

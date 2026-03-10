@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Routes, Route, NavLink } from 'react-router-dom'
-import { Activity, BarChart3, GitCompare, MessageSquare, FolderOpen, DollarSign, CreditCard, Sun, Moon, RefreshCw, AlertTriangle, Github, Terminal, Database, Users, Plug, Copy, Check, Settings as SettingsIcon } from 'lucide-react'
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
+import { Activity, BarChart3, GitCompare, MessageSquare, FolderOpen, DollarSign, CreditCard, Sun, Moon, RefreshCw, AlertTriangle, Github, Terminal, Database, Users, Plug, Copy, Check, Settings as SettingsIcon, Package, ChevronDown } from 'lucide-react'
 import { fetchOverview, refetchAgents, fetchMode, fetchRelayConfig, getAuthToken, setOnAuthFailure } from './lib/api'
 import { useTheme } from './lib/theme'
 import AnimatedLogo from './components/AnimatedLogo'
+import AnimatedLoader from './components/AnimatedLoader'
 import LoginScreen from './components/LoginScreen'
 import Dashboard from './pages/Dashboard'
 import Sessions from './pages/Sessions'
@@ -13,10 +14,57 @@ import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import CostAnalysis from './pages/CostAnalysis'
 import SqlViewer from './pages/SqlViewer'
+import Artifacts from './pages/Artifacts'
 import Settings from './pages/Settings'
 import Subscriptions from './pages/Subscriptions'
 import RelayDashboard from './pages/RelayDashboard'
 import RelayUserDetail from './pages/RelayUserDetail'
+
+function NavDropdown({ icon: Icon, label, items }) {
+  const [open, setOpen] = useState(false)
+  const location = useLocation()
+  const isActive = items.some(i => i.to === location.pathname)
+  const timeout = useRef(null)
+
+  const enter = () => { clearTimeout(timeout.current); setOpen(true) }
+  const leave = () => { timeout.current = setTimeout(() => setOpen(false), 150) }
+
+  return (
+    <div className="relative" onMouseEnter={enter} onMouseLeave={leave}>
+      <button
+        className={`flex items-center gap-1.5 px-2.5 py-1 text-[12px] rounded transition ${
+          isActive ? 'bg-[var(--c-card)] text-[var(--c-white)]' : 'text-[var(--c-text2)] hover:text-[var(--c-white)]'
+        }`}
+      >
+        <Icon size={12} />
+        {label}
+        <ChevronDown size={10} style={{ opacity: 0.5 }} />
+      </button>
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 py-1 rounded shadow-lg min-w-[160px] z-[100]"
+          style={{ background: 'var(--c-bg)', border: '1px solid var(--c-border)' }}
+        >
+          {items.map(({ to, icon: SubIcon, label: subLabel }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              className={({ isActive: a }) =>
+                `flex items-center gap-2 px-3 py-1.5 text-[12px] transition ${
+                  a ? 'bg-[var(--c-bg3)] text-[var(--c-white)]' : 'text-[var(--c-text2)] hover:text-[var(--c-white)] hover:bg-[var(--c-bg3)]'
+                }`
+              }
+            >
+              <SubIcon size={12} />
+              {subLabel}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function App() {
   const [overview, setOverview] = useState(null)
@@ -82,16 +130,24 @@ export default function App() {
   const isRelay = mode === 'relay'
   const showLogin = isRelay && needsAuth && !authed
 
+  const location = useLocation()
+  const isFullWidth = location.pathname === '/artifacts'
+
   const nav = isRelay ? [
     { to: '/', icon: Users, label: 'Team' },
   ] : [
     { to: '/', icon: Activity, label: 'Dashboard' },
-    { to: '/projects', icon: FolderOpen, label: 'Projects' },
     { to: '/sessions', icon: MessageSquare, label: 'Sessions' },
-    { to: '/costs', icon: DollarSign, label: 'Costs' },
-    { to: '/analysis', icon: BarChart3, label: 'Analysis' },
-    { to: '/compare', icon: GitCompare, label: 'Compare' },
-    { to: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },
+    { to: '/projects', icon: FolderOpen, label: 'Projects' },
+    { icon: DollarSign, label: 'Costs', children: [
+      { to: '/costs', icon: DollarSign, label: 'Cost Analysis' },
+      { to: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },
+    ]},
+    { icon: BarChart3, label: 'Insights', children: [
+      { to: '/analysis', icon: BarChart3, label: 'Deep Analysis' },
+      { to: '/compare', icon: GitCompare, label: 'Compare' },
+    ]},
+    { to: '/artifacts', icon: Package, label: 'Artifacts' },
     { to: '/sql', icon: Database, label: 'SQL' },
   ]
 
@@ -107,19 +163,21 @@ export default function App() {
           Agentlytics{isRelay && <span className="ml-1.5 text-[10px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>relay</span>}
         </span>
         <nav className="flex gap-0.5 ml-2">
-          {nav.map(({ to, icon: Icon, label }) => (
+          {nav.map((item) => item.children ? (
+            <NavDropdown key={item.label} icon={item.icon} label={item.label} items={item.children} />
+          ) : (
             <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-2.5 py-1 text-[12px] rounded transition ${
                   isActive ? 'bg-[var(--c-card)] text-[var(--c-white)]' : 'text-[var(--c-text2)] hover:text-[var(--c-white)]'
                 }`
               }
             >
-              <Icon size={12} />
-              {label}
+              <item.icon size={12} />
+              {item.label}
             </NavLink>
           ))}
         </nav>
@@ -196,9 +254,9 @@ export default function App() {
         </div>
       )}
 
-      <main className={isRelay ? 'px-0' : 'p-4 max-w-[1400px] mx-auto'}>
+      <main className={isRelay ? 'px-0' : isFullWidth ? 'p-0 overflow-hidden' : 'p-4 max-w-[1400px] mx-auto'}>
         {mode === null ? (
-          <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading...</div>
+          <AnimatedLoader label="Loading..." />
         ) : isRelay ? (
           <Routes>
             <Route path="/" element={<RelayDashboard />} />
@@ -216,13 +274,14 @@ export default function App() {
             <Route path="/analysis" element={<DeepAnalysis overview={overview} />} />
             <Route path="/compare" element={<Compare overview={overview} />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/artifacts" element={<Artifacts />} />
             <Route path="/sql" element={<SqlViewer />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         )}
       </main>
 
-      <footer className="border-t mt-8 px-4 py-3 flex items-center justify-between text-[11px]" style={{ borderColor: 'var(--c-border)', color: 'var(--c-text3)' }}>
+      <footer className={`border-t mt-8 px-4 py-3 flex items-center justify-between text-[11px]${isFullWidth ? ' hidden' : ''}`} style={{ borderColor: 'var(--c-border)', color: 'var(--c-text3)' }}>
         <div className="flex items-center gap-3">
           <a href="https://github.com/f/agentlytics" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-[var(--c-text)] transition">
             <Github size={11} />

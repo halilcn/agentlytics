@@ -10,6 +10,7 @@ import { editorColor, editorLabel, formatNumber, formatCost, dateRangeToApiParam
 import EditorIcon from '../components/EditorIcon'
 import { fetchDailyActivity, fetchOverview as fetchOverviewApi, fetchDashboardStats, fetchChats, fetchCosts } from '../lib/api'
 import ChatSidebar from '../components/ChatSidebar'
+import AnimatedLoader from '../components/AnimatedLoader'
 import ShareModal from '../components/ShareModal'
 import { useTheme } from '../lib/theme'
 import SectionTitle from '../components/SectionTitle'
@@ -84,7 +85,7 @@ export default function Dashboard({ overview }) {
     })
   }, [selectedEditor, dateRange])
 
-  if (!overview) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading...</div>
+  if (!overview) return <AnimatedLoader label="Loading dashboard..." />
 
   const d = filteredData || overview
   const allEditors = overview.editors.sort((a, b) => b.count - a.count)

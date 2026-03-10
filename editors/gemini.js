@@ -173,4 +173,14 @@ function getMessages(chat) {
 
 const labels = { 'gemini-cli': 'Gemini CLI' };
 
-module.exports = { name, labels, getChats, getMessages };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'gemini-cli',
+    label: 'Gemini CLI',
+    files: ['GEMINI.md'],
+    dirs: [],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getArtifacts };

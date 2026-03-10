@@ -296,4 +296,14 @@ function resetCache() {
 
 const labels = { 'goose': 'Goose' };
 
-module.exports = { name, labels, getChats, getMessages, resetCache };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'goose',
+    label: 'Goose',
+    files: ['.goosehints'],
+    dirs: [],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, resetCache, getArtifacts };

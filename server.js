@@ -361,6 +361,72 @@ app.get('/api/check-ai', async (req, res) => {
   }
 });
 
+// ============================================================
+// Artifacts — delegates to editors/index.js getAllArtifacts
+// ============================================================
+
+app.get('/api/artifacts', (req, res) => {
+  try {
+    const { getAllArtifacts } = require('./editors');
+    const projects = cache.getCachedProjects({ hiddenFolders: getHiddenFolders() });
+    const result = [];
+
+    for (const project of projects) {
+      const folder = project.folder;
+      if (!folder) continue;
+
+      const artifacts = getAllArtifacts(folder);
+      if (artifacts.length === 0) continue;
+
+      // Group by editor
+      const byEditor = {};
+      for (const a of artifacts) {
+        if (!byEditor[a.editor]) byEditor[a.editor] = { editor: a.editor, label: a.editorLabel, files: [] };
+        byEditor[a.editor].files.push(a);
+      }
+
+      result.push({
+        folder,
+        name: project.name || path.basename(folder),
+        totalArtifacts: artifacts.length,
+        editors: Object.values(byEditor),
+      });
+    }
+
+    // Sort by total artifacts descending
+    result.sort((a, b) => b.totalArtifacts - a.totalArtifacts);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/artifact-content', (req, res) => {
+  try {
+    const filePath = req.query.path;
+    if (!filePath) return res.status(400).json({ error: 'path query param required' });
+
+    // Security: validate file exists in known artifact results for at least one project
+    const { getAllArtifacts } = require('./editors');
+    const projects = cache.getCachedProjects({ hiddenFolders: getHiddenFolders() });
+    let allowed = false;
+    for (const project of projects) {
+      if (!project.folder) continue;
+      const artifacts = getAllArtifacts(project.folder);
+      if (artifacts.some(a => a.path === filePath)) { allowed = true; break; }
+    }
+    if (!allowed) return res.status(403).json({ error: 'Not an artifact file' });
+
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const stat = fs.statSync(filePath);
+    res.json({ path: filePath, name: path.basename(filePath), content, size: stat.size, modifiedAt: stat.mtime.getTime() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/all-projects', (req, res) => {
   try {
     res.json(cache.getCachedProjects({ ...parseDateOpts(req.query), includeHidden: true }));

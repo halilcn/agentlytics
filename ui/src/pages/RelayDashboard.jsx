@@ -10,6 +10,7 @@ import ChatSidebar from '../components/ChatSidebar'
 import LiveFeed from '../components/LiveFeed'
 import { editorColor, editorLabel, formatNumber, formatDate } from '../lib/constants'
 import { fetchRelayTeamStats, fetchRelaySearch, fetchRelaySession, mergeRelayUsers } from '../lib/api'
+import AnimatedLoader from '../components/AnimatedLoader'
 import { useTheme } from '../lib/theme'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -291,7 +292,7 @@ export default function RelayDashboard() {
     return map
   }, [userList])
 
-  if (!stats) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading relay data...</div>
+  if (!stats) return <AnimatedLoader label="Loading relay data..." />
 
   const editorData = stats.editors || []
   const models = stats.topModels || []

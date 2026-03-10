@@ -214,6 +214,19 @@ export async function fetchUsage() {
   return res.json();
 }
 
+// ── Artifacts API ──
+
+export async function fetchArtifacts() {
+  const res = await fetch(`${BASE}/api/artifacts`);
+  return res.json();
+}
+
+export async function fetchArtifactContent(filePath) {
+  const q = new URLSearchParams({ path: filePath });
+  const res = await fetch(`${BASE}/api/artifact-content?${q}`);
+  return res.json();
+}
+
 // ── Relay API ──
 
 export async function fetchMode() {

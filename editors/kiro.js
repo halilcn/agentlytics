@@ -293,4 +293,14 @@ function getFileMtime(filePath) {
 
 const labels = { 'kiro': 'Kiro' };
 
-module.exports = { name, labels, getChats, getMessages };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'kiro',
+    label: 'Kiro',
+    files: ['AGENTS.md'],
+    dirs: ['.kiro/specs', '.kiro/steering'],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getArtifacts };

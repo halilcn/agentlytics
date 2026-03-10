@@ -4,6 +4,7 @@ import { fetchConfig, updateConfig, fetchAllProjects } from '../lib/api'
 import { editorLabel, formatNumber, formatDate } from '../lib/constants'
 import EditorIcon from '../components/EditorIcon'
 import SectionTitle from '../components/SectionTitle'
+import AnimatedLoader from '../components/AnimatedLoader'
 
 export default function Settings() {
   const [config, setConfig] = useState(null)
@@ -21,7 +22,7 @@ export default function Settings() {
   }, [])
 
   if (loading || !config) {
-    return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading settings...</div>
+    return <AnimatedLoader label="Loading settings..." />
   }
 
   const hiddenProjects = config.hiddenProjects || []

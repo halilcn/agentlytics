@@ -415,4 +415,14 @@ async function getUsage() {
 
 const labels = { 'cursor': 'Cursor' };
 
-module.exports = { name, labels, getChats, getMessages, getUsage };
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'cursor',
+    label: 'Cursor',
+    files: ['.cursorrules', 'AGENTS.md'],
+    dirs: ['.cursor/rules', '.cursor/plans'],
+  });
+}
+
+module.exports = { name, labels, getChats, getMessages, getUsage, getArtifacts };

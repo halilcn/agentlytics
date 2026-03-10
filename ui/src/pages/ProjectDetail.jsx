@@ -10,6 +10,7 @@ import KpiCard from '../components/KpiCard'
 import EditorIcon from '../components/EditorIcon'
 import SectionTitle from '../components/SectionTitle'
 import ChatSidebar from '../components/ChatSidebar'
+import AnimatedLoader from '../components/AnimatedLoader'
 import AiAuditCard from '../components/AiAuditCard'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -77,7 +78,7 @@ export default function ProjectDetail() {
   }
 
   if (!folder) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text3)' }}>no project specified</div>
-  if (loading) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text2)' }}>loading project...</div>
+  if (loading) return <AnimatedLoader label="Loading project..." />
   if (!project) return <div className="text-sm py-12 text-center" style={{ color: 'var(--c-text3)' }}>project not found</div>
 
   const editorEntries = Object.entries(project.editors).sort((a, b) => b[1] - a[1])

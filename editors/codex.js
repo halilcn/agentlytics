@@ -499,9 +499,20 @@ async function getUsage() {
 
 const labels = { 'codex': 'Codex' };
 
+function getArtifacts(folder) {
+  const { scanArtifacts } = require('./base');
+  return scanArtifacts(folder, {
+    editor: 'codex',
+    label: 'Codex',
+    files: ['AGENTS.md', 'codex.md'],
+    dirs: [],
+  });
+}
+
 module.exports = {
   name,
   labels,
+  getArtifacts,
   getChats,
   getMessages,
   getUsage,
